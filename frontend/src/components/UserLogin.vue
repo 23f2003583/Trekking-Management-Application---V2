@@ -1,5 +1,8 @@
 <template>
   <div>
+    <button style="float: right; color:red" @click="cancel()">
+          cancel
+    </button>
     <h1>Login</h1>
     <form @submit.prevent="login">
       <div>
@@ -36,16 +39,29 @@ export default {
         console.log('Login successful:', response.data);
         
         const token = response.data.data.access_token;
-        localStorage.setItem('token', token); 
+        localStorage.setItem('user_token', token);
         
         this.$emit('login-successful'); 
         this.$router.push('/user'); 
         
       } catch (error) {
-        console.error('Error logging in:', error);
-        alert('Invalid username or password'); 
-      }
-    }
+            // Check if the error came from the backend and has our custom message
+            if (error.response && error.response.data && error.response.data.message) {
+                
+                // This will correctly alert: "User account is inactive or blacklisted"
+                alert(error.response.data.message); 
+                console.error("Backend Error:", error.response.data.message);
+                
+            } else {
+                // Fallback for network errors (e.g., server is down completely)
+                alert("A network error occurred.");
+                console.error("Axios Error:", error.message);
+            }
+        }
+    },
+        cancel() {
+            this.$router.push('/');
+        }
   }
 }
 </script>

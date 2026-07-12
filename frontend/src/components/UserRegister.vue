@@ -1,7 +1,14 @@
 <template>
   <div class="user-register">
+    <button style="float: right; color:red" @click="cancel()">
+          cancel
+      </button>
     <h1>User Registration</h1>
     <form @submit.prevent="registerUser">
+        <div>
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" v-model="form.name" required>
+        </div>
         <div>
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" v-model="form.username" required>
@@ -29,13 +36,14 @@ import axios from 'axios';
 
 export default {
   name: 'UserRegister',
-  emits: ['register'],
+  emits: ['registered', 'show-login'],
   data() {
     return {
         form: {
             username: '',
             email: '',
-            password: ''
+            password: '',
+            name: ''
         }
 
     };
@@ -45,12 +53,17 @@ export default {
       try {
         const response = await axios.post('http://localhost:5000/api/register', this.form);
         this.$emit('registered'); 
+        localStorage.setItem('user_token', response.data.access_token);
         console.log('User registered successfully:', response.data);
       } catch (error) {
+        alert(error.response.data.message);
         console.error('Error registering user:', error);
       }
       this.$router.push('/user'); 
-    }
+    },
+        cancel() {
+            this.$router.push('/');
+        }
   }
 };
 

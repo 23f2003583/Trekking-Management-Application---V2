@@ -2,11 +2,13 @@ import { createRouter , createWebHistory } from 'vue-router'
 import LandingView from "../views/LandingView.vue"
 import AdminView from "../views/AdminView.vue"
 import UserView from "../views/UserView.vue"
+import StaffView from "../views/StaffView.vue"
     
 const routes = [
     {path: '/', component: LandingView},
     {path: '/admin', component: AdminView},
     {path: '/user', component: UserView},
+    {path: '/staff', component: StaffView},
     {path: '/:pathMatch(.*)', redirect: '/'}
 ]
 

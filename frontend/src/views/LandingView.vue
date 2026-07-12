@@ -5,6 +5,10 @@
     <button @click="$router.push('/admin')">
       Admin View
     </button>
+
+    <button @click="$router.push('/staff')">
+      Staff View
+    </button>
     
     <button @click="$router.push('/user')">
       User View

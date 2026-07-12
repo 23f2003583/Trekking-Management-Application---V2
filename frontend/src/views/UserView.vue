@@ -8,7 +8,6 @@
     <div v-else>
         <UserDashboard />
     </div>
-
 </div>
 </template>
 
@@ -40,6 +39,7 @@ export default {
             this.showRegister = false;
             this.isLoggedIn = true;
         }
+
     }
 };
 
