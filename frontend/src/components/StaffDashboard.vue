@@ -10,6 +10,8 @@
         <button @click="activeTab = 'bookings'" :class="{ active: activeTab === 'bookings'}">Bookings</button>
         <button @click="activeTab = 'trekkers'" :class="{ active: activeTab === 'trekkers'}">Trekkers</button>
         <button @click="activeTab = 'profile'" :class="{ active: activeTab === 'profile'}">Profile</button>
+         <button @click="activeTab = 'Summary'" :class="{ active: activeTab === 'Summary'}">Summary</button>
+
     </nav>
     <main>
         <StaffHome v-if="activeTab === 'home'" :user="user_details" />
@@ -17,6 +19,7 @@
         <StaffTrekkers v-if="activeTab === 'trekkers'" :user="user_details"/>
         <StaffBookings v-if="activeTab === 'bookings'" :user="user_details"/>
         <StaffProfile v-if="activeTab === 'profile'" :user="user_details"/>
+        <StaffSummary  v-if="activeTab === 'Summary'" :user="user_details" />
     </main>
 </template>
 
@@ -27,6 +30,7 @@ import StaffTreks from './StaffTreks.vue';
 import StaffTrekkers from './StaffTrekkers.vue';
 import StaffProfile from './StaffProfile.vue';
 import StaffBookings from './StaffBookings.vue';
+import StaffSummary from './StaffSummary.vue';
 export default {
     name: 'StaffDashboard',
     components: {
@@ -34,7 +38,8 @@ export default {
         StaffTreks,
         StaffTrekkers,
         StaffProfile,
-        StaffBookings
+        StaffBookings,
+        StaffSummary
     },
     data() {
       return {

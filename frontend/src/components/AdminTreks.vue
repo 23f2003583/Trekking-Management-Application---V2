@@ -130,7 +130,7 @@ export default {
         async deleteTrek(trekId) {
             const token = localStorage.getItem('admin_token');
             try {
-                await axios.delete(`http://localhost:5000/api/delete_treks/${trekId}`, {
+                await axios.delete(`http://localhost:5000/api/delete_trek/${trekId}`, {
                     headers: {
                         Authorization: `Bearer ${token}` 
                     }

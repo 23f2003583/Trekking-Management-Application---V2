@@ -80,7 +80,7 @@ export default {
 
             const token = localStorage.getItem('admin_token');
             try {
-                await axios.delete(`http://localhost:5000/api/delete_users/${userId}/`, {
+                await axios.delete(`http://localhost:5000/api/delete_users/${userId}`, {
                     headers: {
                         Authorization: `Bearer ${token}` 
                     }

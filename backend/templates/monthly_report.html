@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Trek Report</title>
+</head>
+<body>
+    Hello Admin,
+    <br><br>
+    Here is the report of all the trek bookings for this month:
+    <br><br>
+    
+    {% for booking in bookings %}
+        <p><strong>User:</strong> {{ booking.username }}</p>
+        <p><strong>Trek Name:</strong> {{ booking.trek_name }}</p>
+        <p><strong>Location:</strong> {{ booking.location }}</p>
+        <p><strong>Booking Date:</strong> {{ booking.booking_date }}</p>
+        <p><strong>Status:</strong> {{ booking.status }}</p>
+        <p><strong>Price:</strong> {{ booking.price }}</p>
+        <hr>
+    {% endfor %}
+
+</body>
+</html>

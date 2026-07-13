@@ -15,7 +15,7 @@ app.config['CACHE_REDIS_URL'] = 'redis://localhost:6379/0'
 db.init_app(app)
 
 jwt = JWTManager(app)
-cache = Cache(app, config={'CACHE_TYPE': 'SimpleCache'})
+cache = Cache(app)
 CORS(app)
 
 @app.route('/api/register', methods=['POST'])
@@ -278,7 +278,8 @@ def update_trek(trek_id):
     end_date_str = data.get('end_date')
     if end_date_str:
         trek.end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
-    
+    cache.clear()
+
     db.session.commit()
 
     return jsonify({"message": "Trek updated successfully"}), 200
@@ -295,6 +296,8 @@ def delete_trek(trek_id):
 
     trek.is_deleted = True
     trek.status = 'Inactive' 
+    cache.clear()
+
     db.session.commit()
 
     return jsonify({"message": "Trek deleted successfully"}), 200
@@ -315,6 +318,7 @@ def update_trek_status(trek_id):
         trek.status = 'Closed'
     else:
         trek.status = 'Upcomming'
+    cache.clear()
     db.session.commit()
 
     return jsonify({"message": "Trek status updated successfully"}), 200
@@ -424,7 +428,6 @@ def get_my_profile():
     if not staff:
         return jsonify({"message": "Staff not found"}), 404
 
-    # Format it manually
     staff_data = {
         'id': staff.id,
         'name': staff.name,
@@ -461,42 +464,6 @@ def update_staff(staff_id):
     db.session.commit()
 
     return jsonify({"message": "Staff updated successfully"}), 200
-
-# @app.route('/api/delete_staff/<int:staff_id>', methods=['DELETE'])
-# @jwt_required()
-# def delete_staff(staff_id):
-#     if get_jwt().get('role') != 'admin':
-#         return jsonify({"message": "Unauthorized"}), 401
-
-#     staff = User.query.get(staff_id)
-#     if not staff or staff.is_deleted:
-#         return jsonify({"message": "Staff not found"}), 404
-
-#     staff.is_deleted = True
-#     staff.status = 'Inactive'
-#     db.session.commit()
-
-#     return jsonify({"message": "Staff deleted successfully"}), 200
-
-# @app.route('/api/staff/<int:staff_id>/status', methods=['PUT'])
-# @jwt_required()
-# def staff_status(staff_id):
-#     if get_jwt().get('role') != 'admin':
-#         return jsonify({"message": "Unauthorized"}), 401
-
-#     staff = User.query.get(staff_id)
-#     if not staff:
-#         return jsonify({"message": "Staff not found"}), 404
-
-#     if staff.status == 'Active':
-#         staff.status = 'Inactive'
-#     elif staff.status == 'Inactive':
-#         staff.status = 'Blacklist'
-#     else:
-#         staff.status = 'Active'
-#     db.session.commit()
-
-#     return jsonify({"message": "Staff status updated successfully"}), 200
 
 
 # #-/-/-/-/-/-/-/-/-/-/-/-/-/-/-USERS-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/
@@ -598,7 +565,6 @@ def get_bookings_of_staff():
                 'booking_id': booking.id,          
                 'booking_status': booking.status,
                 'booking_date': booking.booking_date,
-                # Using the user/trekker data for the staff view
                 'user_name': user.name if user else None,
                 'username': user.username if user else None, 
                 'email': user.email if user else None
@@ -615,10 +581,8 @@ def get_users_of_staff():
         
     current_staff_id = get_jwt_identity()
 
-    # Find all bookings for treks assigned to the current staff member
     bookings = Booking.query.join(Trek).filter(Trek.staff_id == current_staff_id).all()
     
-    # We will use a dictionary to group treks by the user_id
     users_data = {}
     
     for booking in bookings:
@@ -626,7 +590,6 @@ def get_users_of_staff():
         trek = Trek.query.get(booking.trek_id)
         
         if user and trek:
-            # If we haven't added this user to our dictionary yet, create their profile
             if user.id not in users_data:
                 users_data[user.id] = {
                     'id': user.id,
@@ -634,14 +597,12 @@ def get_users_of_staff():
                     'username': user.username,
                     'email': user.email,
                     'status': user.status,
-                    'booked_treks': [] # List to hold the names of the treks they booked
+                    'booked_treks': [] 
                 }
             
-            # Add the trek name to the user's list (preventing duplicates if they booked twice)
             if trek.name not in users_data[user.id]['booked_treks']:
                 users_data[user.id]['booked_treks'].append(trek.name)
 
-    # Convert our dictionary back into a standard list for Vue
     data = list(users_data.values())
 
     return jsonify(data), 200
@@ -658,7 +619,7 @@ def get_user(user_id):
 
     return jsonify(user.to_dict()), 200
 
-@app.route('/api/delete_users/<int:user_id>/', methods=['DELETE'])
+@app.route('/api/delete_users/<int:user_id>', methods=['DELETE'])
 @jwt_required()
 def delete_user(user_id):
     if get_jwt().get('role') != 'admin':
@@ -715,6 +676,8 @@ def update_user(user_id):
 
 
 
+
+
 #BOOKINGS
 @app.route('/api/book_trek/<int:trek_id>', methods=['POST'])
 @jwt_required()
@@ -757,19 +720,33 @@ def get_bookings():
 
     bookings = Booking.query.all()
     data = []
+    
     for booking in bookings:
         trek = Trek.query.get(booking.trek_id)
         user = User.query.get(booking.user_id)
-        booking_data = {
-            'id': booking.id,
-            'user_id': booking.user_id,
-            'user_name': user.name if user else None,
-            'trek_id': booking.trek_id,
-            'trek_name': trek.name if trek else None,
-            'booking_date': booking.booking_date,
-            'status': booking.status
-        }
-        data.append(booking_data)
+        if trek:
+            staff = User.query.get(trek.staff_id) 
+            
+            trek_data = {
+                'booking_id': booking.id,          
+                'name': trek.name,
+                'location': trek.location,
+                'booking_date': booking.booking_date,
+                'duration': trek.duration,
+                
+                'user_name': user.name if user else None,
+                'email': user.email if user else None, 
+                
+                'staff_name': staff.name if staff else "Unassigned",
+                'staff_email': staff.email if staff else "N/A",
+                
+                'start_date': trek.start_date,
+                'end_date': trek.end_date,
+                'status': trek.status,
+                'booking_status': booking.status,
+            }
+            data.append(trek_data)
+
     return jsonify(data), 200
 
 
@@ -791,6 +768,9 @@ def update_booking_status(booking_id):
         trek.available_slots += 1
         db.session.add(trek)
         booking.status = 'Cancelled'
+    elif booking.status == 'Cancelled':
+        booking.status = 'Completed'
+
     else:
         booking.status = 'Pending'
         db.session.add(booking)
@@ -818,6 +798,228 @@ def cancel_booking(booking_id):
     db.session.commit()
 
     return jsonify({"message": "Booking cancelled successfully"}), 200
+
+
+@app.route('/api/user/summary', methods=['GET'])
+@jwt_required()
+def user_summary():
+    user_id = get_jwt_identity()
+    bookings = Booking.query.filter_by(user_id=user_id).all()
+    
+    trek_summary = {}
+    for booking in bookings:
+        trek = Trek.query.get(booking.trek_id)
+        if not trek:
+            continue
+            
+        if trek.name not in trek_summary:
+            trek_summary[trek.name] = {
+                'total_bookings': 0,
+                'total_cost': 0.0
+            }
+            
+        trek_summary[trek.name]['total_bookings'] += 1
+        trek_summary[trek.name]['total_cost'] += trek.price
+        
+    trek_names = []
+    trek_counts = []
+    trek_costs = []
+    
+    for trek_name, summary in trek_summary.items():
+        trek_names.append(trek_name)  
+        trek_counts.append(summary['total_bookings'])
+        trek_costs.append(summary['total_cost'])
+    
+    total_spent = sum(summary['total_cost'] for summary in trek_summary.values())
+    
+    active_bookings = sum(1 for booking in bookings if booking.status == 'Confirmed')        
+    completed_bookings = sum(1 for booking in bookings if booking.status == 'Completed')
+    
+    return jsonify({
+        'trek_names': trek_names,
+        'trek_counts': trek_counts,
+        'trek_costs': trek_costs,
+        'total_spent': total_spent,        
+        'active_bookings': active_bookings,        
+        'completed_bookings': completed_bookings,
+        'total': len(bookings)
+    }), 200
+
+@app.route('/api/export/bookings', methods=['GET'])
+@jwt_required()
+def export_bookings():
+    user_id = get_jwt_identity()
+    
+    from tasks import export_bookings_report
+    
+    export_bookings_report.delay(user_id)
+    
+    return jsonify({'message': 'Bookings report is being generated and will be sent to your email shortly.'}), 200
+
+
+
+@app.route('/api/admin/summary', methods=['GET'])
+@jwt_required()
+def admin_summary():
+    if get_jwt().get('role') != 'admin':
+        return jsonify({'message': 'Admin access required'}), 403
+
+    bookings = Booking.query.all()
+    trek_summary = {}
+    
+    for booking in bookings:
+        trek = Trek.query.get(booking.trek_id)
+        if not trek:
+            continue
+            
+        if trek.name not in trek_summary:
+            trek_summary[trek.name] = {
+                'total_bookings': 0,
+                'total_revenue': 0.0
+            }
+            
+        trek_summary[trek.name]['total_bookings'] += 1
+        trek_summary[trek.name]['total_revenue'] += trek.price
+        
+    trek_names = []
+    trek_counts = []
+    trek_revenues = []
+    
+    for trek_name, summary in trek_summary.items():
+        trek_names.append(trek_name)  
+        trek_counts.append(summary['total_bookings'])
+        trek_revenues.append(summary['total_revenue'])
+    
+    total_revenue = sum(summary['total_revenue'] for summary in trek_summary.values())
+
+    staff_summary = {}
+    all_treks = Trek.query.all()
+    
+    for trek in all_treks:
+        if trek.staff_id: 
+            staff = User.query.get(trek.staff_id)
+            staff_name = staff.name if staff else f"Unknown (ID: {trek.staff_id})"
+            
+            if staff_name not in staff_summary:
+                staff_summary[staff_name] = 0
+            staff_summary[staff_name] += 1
+            
+    staff_names = list(staff_summary.keys())
+    staff_trek_counts = list(staff_summary.values())
+    
+    return jsonify({
+        'trek_names': trek_names,
+        'trek_counts': trek_counts,
+        'trek_revenues': trek_revenues,
+        'total_revenue': total_revenue,        
+        'total_bookings': len(bookings),
+        'staff_names': staff_names,
+        'staff_trek_counts': staff_trek_counts
+    }), 200
+
+
+@app.route('/api/staff/summary', methods=['GET'])
+@jwt_required()
+def staff_summary():
+    if get_jwt().get('role') != 'staff':
+        return jsonify({'message': 'Staff access required'}), 403
+
+    staff_id = get_jwt_identity()
+    
+    staff_treks = Trek.query.filter_by(staff_id=staff_id).all()
+    trek_ids = [trek.id for trek in staff_treks]
+    
+    bookings = Booking.query.filter(Booking.trek_id.in_(trek_ids)).all()
+    
+    trek_summary = {}
+    for booking in bookings:
+        trek = Trek.query.get(booking.trek_id)
+        if not trek:
+            continue
+            
+        if trek.name not in trek_summary:
+            trek_summary[trek.name] = {
+                'total_bookings': 0,
+                'total_revenue': 0.0
+            }
+            
+        trek_summary[trek.name]['total_bookings'] += 1
+        trek_summary[trek.name]['total_revenue'] += trek.price
+        
+    trek_names = []
+    trek_counts = []
+    trek_revenues = []
+    
+    for trek_name, summary in trek_summary.items():
+        trek_names.append(trek_name)  
+        trek_counts.append(summary['total_bookings'])
+        trek_revenues.append(summary['total_revenue'])
+    
+    total_revenue = sum(summary['total_revenue'] for summary in trek_summary.values())
+    
+    active_bookings = sum(1 for booking in bookings if booking.status == 'Confirmed')        
+    completed_bookings = sum(1 for booking in bookings if booking.status == 'Completed')
+    
+    return jsonify({
+        'trek_names': trek_names,
+        'trek_counts': trek_counts,
+        'trek_revenues': trek_revenues,
+        'total_revenue': total_revenue,  
+        'active_bookings': active_bookings,
+        'completed_bookings': completed_bookings,      
+        'total_bookings': len(bookings)
+    }), 200
+
+@app.route('/api/admin/search', methods=['GET'])
+@jwt_required()
+def admin_search():
+    if get_jwt().get('role') != 'admin':
+        return jsonify({'message': 'Admin access required'}), 403
+
+    query = request.args.get('q', '').strip()
+    
+    if not query:
+        return jsonify({'treks': [], 'staff': [], 'users': []}), 200
+
+    search_term = f"%{query}%"
+
+    treks = Trek.query.filter(Trek.name.ilike(search_term), Trek.is_deleted != True).all()
+    trek_data = [{'id': t.id, 'name': t.name, 'location': t.location} for t in treks]
+
+    staff_members = User.query.filter(User.name.ilike(search_term), User.role == 'staff').all()
+    staff_data = [{'id': s.id, 'name': s.name, 'email': s.email} for s in staff_members]
+
+    users = User.query.filter(User.name.ilike(search_term), User.role == 'user').all()
+    user_data = [{'id': u.id, 'name': u.name, 'email': u.email} for u in users]
+
+    return jsonify({
+        'treks': trek_data,
+        'staff': staff_data,
+        'users': user_data
+    }), 200
+
+@app.route('/api/user/search_treks', methods=['GET'])
+@jwt_required()
+def user_search_treks():
+    query = request.args.get('q', '').strip()
+    
+    if not query:
+        return jsonify([]), 200
+
+    search_term = f"%{query}%"
+
+    treks = Trek.query.filter(Trek.name.ilike(search_term), Trek.is_deleted != True).all()
+    
+    trek_data = [{
+        'id': t.id,
+        'name': t.name,
+        'location': t.location,
+        'start_date': t.start_date,
+        'end_date': t.end_date,
+        'status': t.status
+    } for t in treks]
+
+    return jsonify(trek_data), 200
 
 @app.route('/', methods=['GET'])
 def get_data():

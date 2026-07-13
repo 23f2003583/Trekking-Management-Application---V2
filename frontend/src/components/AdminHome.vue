@@ -19,10 +19,7 @@
         </div>
         </div>
 
-
-        <h1>Recent Bookings</h1>
-        <p></p>
-</template>
+        </template>
 
 <script>
 import axios from 'axios';

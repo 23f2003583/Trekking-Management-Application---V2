@@ -28,7 +28,7 @@
             </thead>
             
             <tbody>
-                <tr v-for="trek in treks" :key="trek.id">
+                <tr v-for="trek in activeTreks" :key="trek.id">
                     <td>{{ trek.id }}</td>
                     <td>{{ trek.name }}</td>
                     <td>{{ trek.location }}</td>
@@ -66,6 +66,11 @@ export default {
       return {
         treks: [],
       };
+    },
+    computed: {
+        activeTreks() {
+            return this.treks.filter(trek => trek.is_deleted !== true);
+        }
     },
     methods: {
         async fetchTreks() {

@@ -40,7 +40,7 @@
                     <td><button>{{ booking.booking_status }}</button></td>
                     <td>
                         <button 
-                            v-if="booking.booking_status !== 'Cancelled'"
+                            v-if="booking.booking_status !== 'Cancelled' && booking.booking_status !== 'Completed'"
                             @click="Cancel_Booking(booking.booking_id)"
                             style="background-color: #ff4c4c; color: white; border: none; padding: 4px 8px; cursor: pointer; border-radius: 4px;"
                         >

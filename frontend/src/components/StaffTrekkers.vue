@@ -26,21 +26,18 @@
                     <td>{{ user.username }}</td>
                     <td>{{ user.email }}</td>
                     
-                    <!-- Loop through the user's booked treks and display them -->
                     <td>
-                        <span 
-                            v-for="(trek, index) in user.booked_treks" 
-                            :key="index" 
-                            class="trek-badge"
-                        >
-                            {{ trek }}
-                        </span>
+                        <ul>
+                            <li v-for="trek in user.booked_treks" :key="trek.id" >
+                                {{ trek }}
+                            </li>
+                        </ul>
                     </td>
                     
                     <td>
-                        <span :class="statusClass(user.status)" class="status-badge">
+                        <button :class="statusClass(user.status)" class="status-badge">
                             {{ user.status }}
-                        </span>
+                        </button>
                     </td>
                 </tr>
             </tbody>
@@ -94,35 +91,5 @@ export default {
 </script>
 
 <style>
-/* Styling for the status badges */
-.status-badge {
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-weight: bold;
-    font-size: 0.85em;
-}
-.status-active {
-    background-color: #dff0d8;
-    color: #3c763d;
-}
-.status-inactive {
-    background-color: #fcf8e3;
-    color: #8a6d3b;
-}
-.status-blacklist {
-    background-color: #f2dede;
-    color: #a94442;
-}
 
-/* Styling for the booked treks badges */
-.trek-badge {
-    display: inline-block;
-    background-color: #e0f2f1;
-    color: #00695c;
-    padding: 3px 6px;
-    margin: 2px;
-    border-radius: 4px;
-    font-size: 0.85em;
-    border: 1px solid #b2dfdb;
-}
 </style>
