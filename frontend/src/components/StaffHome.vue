@@ -1,27 +1,32 @@
 <template>
     <div>
-        <h1>Admin Home</h1>
-        <p></p>
+        <h1>Staff Home</h1>
+        
+        <div class="container">
+            <div class="box">
+                <h2>Assigned Treks: {{ assigned_trek_count }}</h2>
+            </div>
+        </div>
+
+        <div v-if="treks_user_counts.length > 0">
+            <h3>Registered Users per Trek</h3>
+            <table >
+                <thead>
+                    <tr>
+                        <th >Trek Name</th>
+                        <th >User Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="trek in treks_user_counts" :key="trek.trek_name">
+                        <td >{{ trek.trek_name }}</td>
+                        <td>{{ trek.user_count }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <p v-else>No trekking data available.</p>
     </div>
-    <div class="container">
-        <div class="box">
-            <h2>Trek Count: {{ trek_count }}</h2>
-        </div>
-        <div class="box">
-            <h2>User Count: {{ user_count }}</h2>
-            <p></p>
-        </div>
-        <div class="box">
-            <h2>Staff Count: {{ staff_count }}</h2>
-        </div>
-        <div class="box">
-            <h2>Booking Count: {{ booking_count }}</h2>
-        </div>
-        </div>
-
-
-        <h1>Recent Bookings</h1>
-        <p></p>
 </template>
 
 <script>
@@ -31,12 +36,29 @@ export default {
     name: 'StaffHome',
     data() {
         return {
-            trek_count: 0,
-            user_count: 0,
-            staff_count: 0,
-            booking_count: 0
+            assigned_trek_count: 0,
+            treks_user_counts: [] 
         };
     },
-    // Optional: Add a mounted hook later when you are ready to fetch the real data for the staff!
+    mounted() {
+        this.fetchStaffData();
+    },
+    methods: {
+        async fetchStaffData() {
+            try {
+                const token = localStorage.getItem('staff_token');
+                const response = await axios.get('http://localhost:5000/api/staff_home', {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                this.assigned_trek_count = response.data.assigned_trek_count;
+                this.treks_user_counts = response.data.treks_user_counts;
+            } catch (error) {
+                console.error('Error fetching staff data:', error);
+            }
+        }
+    }
 }
 </script>
+

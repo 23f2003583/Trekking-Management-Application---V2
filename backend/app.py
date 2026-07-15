@@ -36,31 +36,7 @@ def register_user():
             identity=str(user.id), 
             additional_claims={"role": user.role}
     )
-    # return jsonify({"message": "User registered successfully"}), 200
-    treks = Trek.query.all()
-    trek_data = []
-    for trek in treks:
-        trek_data.append({
-            'id': trek.id,
-            'name': trek.name,
-            'description': trek.description,
-            'difficulty': trek.difficulty,
-            'duration': trek.duration,
-            'location': trek.location,
-            'available_slots': trek.available_slots,
-            'start_date': trek.start_date,
-            'end_date': trek.end_date,
-            'staff_id': trek.staff_id,
-            'price': trek.price,
-            'status': trek.status,
-            'is_deleted': trek.is_deleted
-        })
-    return jsonify({
-        "message": "User registered successfully", 
-        "access_token": access_token, 
-        "data": trek_data
-    }), 200
-
+    return jsonify({"message": "User registered successfully"}), 200
 
 @app.route('/api/login', methods=['POST'])
 def login_user():
@@ -127,8 +103,59 @@ def admin_home():
         "booking_count": booking_count
     }), 200
 
+@app.route('/api/staff_home', methods=['GET'])
+@jwt_required()
+def staff_home():
+    if get_jwt().get('role') != 'staff':
+        return jsonify({"message": "Unauthorized"}), 401
+        
+    current_staff_id = get_jwt_identity()
 
+    assigned_treks = Trek.query.filter_by(staff_id=current_staff_id, is_deleted=False).all()
+    trek_count = len(assigned_treks)
 
+    treks_user_counts = []
+    
+    for trek in assigned_treks:
+        count = Booking.query.filter_by(trek_id=trek.id).count()
+        treks_user_counts.append({
+            "trek_name": trek.name,
+            "user_count": count
+        })
+
+    return jsonify({
+        "assigned_trek_count": trek_count,
+        "treks_user_counts": treks_user_counts
+    }), 200
+
+from flask import jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
+
+@app.route('/api/user_home', methods=['GET'])
+@jwt_required()
+def user_home():
+    current_user_id = get_jwt_identity()
+
+    available_treks_count = Trek.query.filter(
+        Trek.is_deleted == False, 
+        Trek.available_slots > 0
+    ).count()
+
+    booked_treks_count = Booking.query.filter_by(
+        user_id=current_user_id, 
+        status='Confirmed'
+    ).count()
+
+    completed_treks_count = Booking.query.filter_by(
+        user_id=current_user_id, 
+        status='Completed'
+    ).count()
+
+    return jsonify({
+        "available_treks": available_treks_count,
+        "booked_treks": booked_treks_count,
+        "completed_treks": completed_treks_count
+    }), 200
 
 
 
@@ -167,6 +194,8 @@ def create_trek():
         price=data.get('price', 0.00)
         )
     db.session.add(trek)
+    cache.clear()
+
     db.session.commit()
 
     return jsonify({"message": "Trek created successfully"}), 200
@@ -199,8 +228,8 @@ def get_treks():
             'duration': trek.duration,
             'location': trek.location,
             'available_slots': trek.available_slots,
-            'start_date': trek.start_date.strftime('%d-%m-%Y') if trek.start_date else None,
-            'end_date': trek.end_date.strftime('%d-%m-%Y') if trek.end_date else None,
+            'start_date': trek.start_date.isoformat(),
+            'end_date': trek.end_date.isoformat(),
             'staff_id': trek.staff_id,
             'price': trek.price,
             'status': trek.status,
@@ -214,11 +243,12 @@ def get_treks():
     return jsonify(data), 200
 
 
-
+##?
 @app.route('/api/bookings/<int:trek_id>', methods=['GET'])
-# @jwt_required()
+@jwt_required()
 def get_bookings_of_trek(trek_id):
-    if get_jwt().get('role') != 'User':
+    user_role = get_jwt().get('role', '').lower()
+    if user_role not in ['admin', 'staff']:
         return jsonify({"message": "Unauthorized"}), 401
 
     bookings = Booking.query.filter_by(trek_id=trek_id).all()
@@ -238,7 +268,7 @@ def get_bookings_of_trek(trek_id):
         data.append(booking_data)
     return jsonify(data), 200
 
-
+##?
 @app.route('/api/get_trek/<int:trek_id>', methods=['GET'])
 @jwt_required()
 def get_trek(trek_id):
@@ -406,8 +436,8 @@ def get_treks_of_staff():
             'duration': trek.duration,
             'location': trek.location,
             'available_slots': trek.available_slots,
-            'start_date': trek.start_date,
-            'end_date': trek.end_date,
+            'start_date': trek.start_date.isoformat(),
+            'end_date': trek.end_date.isoformat(),
             'staff_id': trek.staff_id,
             'price': trek.price,
             'status': trek.status,
@@ -419,27 +449,41 @@ def get_treks_of_staff():
 
 
 
-@app.route('/api/staff/profile', methods=['GET'])
+@app.route('/api/profile', methods=['GET'])
 @jwt_required()
 def get_my_profile():
-    current_staff_id = get_jwt_identity()
+    current_id = get_jwt_identity()
     
-    staff = User.query.get(current_staff_id)
-    if not staff:
+    user = User.query.get(current_id)
+    if not user:
         return jsonify({"message": "Staff not found"}), 404
 
-    staff_data = {
-        'id': staff.id,
-        'name': staff.name,
-        'username': staff.username,
-        'email': staff.email,
-        'role': staff.role,
-        'status': staff.status,
-        'is_deleted': staff.is_deleted,
-        'treks': [{'id': trek.id, 'name': trek.name} for trek in staff.treks]
+    user_data = {
+        'id': user.id,
+        'name': user.name,
+        'username': user.username,
+        'email': user.email,
+        'role': user.role,
+        'status': user.status,
+        'is_deleted': user.is_deleted,
+        'treks': [{'id': trek.id, 'name': trek.name} for trek in user.treks]
     }
 
-    return jsonify(staff_data), 200
+    return jsonify(user_data), 200
+
+@app.route('/api/profile', methods=['PUT'])
+@jwt_required()
+def update_my_profile():
+    current_id = get_jwt_identity()
+    user = User.query.get(current_id)
+    data = request.get_json()
+
+    user.name = data.get('name', user.name)
+    user.email = data.get('email', user.email)
+    
+    db.session.commit()
+    return jsonify({"message": "Profile updated successfully"}), 200
+
 
 @app.route('/api/update_staff/<int:staff_id>', methods=['PUT'])
 @jwt_required()
@@ -517,8 +561,8 @@ def get_bookings_of_user():
                 'duration': trek.duration,
                 'location': trek.location,
                 'available_slots': trek.available_slots,
-                'start_date': trek.start_date,
-                'end_date': trek.end_date,
+                'start_date': trek.start_date.isoformat(),
+                'end_date': trek.end_date.isoformat(),
                 'staff_id': trek.staff_id,
                 'price': trek.price,
                 'status': trek.status,
@@ -556,8 +600,8 @@ def get_bookings_of_staff():
                 'duration': trek.duration,
                 'location': trek.location,
                 'available_slots': trek.available_slots,
-                'start_date': trek.start_date,
-                'end_date': trek.end_date,
+                'start_date': trek.start_date.isoformat(),
+                'end_date': trek.end_date.isoformat(),
                 'staff_id': trek.staff_id,
                 'price': trek.price,
                 'status': trek.status,
@@ -607,17 +651,6 @@ def get_users_of_staff():
 
     return jsonify(data), 200
 
-@app.route('/api/users/<int:user_id>', methods=['GET'])
-@jwt_required()
-def get_user(user_id):
-    if get_jwt().get('role') != 'admin':
-        return jsonify({"message": "Unauthorized"}), 401
-
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"message": "User not found"}), 404
-
-    return jsonify(user.to_dict()), 200
 
 @app.route('/api/delete_users/<int:user_id>', methods=['DELETE'])
 @jwt_required()
@@ -655,27 +688,6 @@ def update_user_status(user_id):
 
     return jsonify({"message": "User status updated successfully"}), 200
 
-@app.route('/api/users/<int:user_id>', methods=['PUT'])
-@jwt_required()
-def update_user(user_id):
-    if get_jwt().get('role') != 'user':
-        return jsonify({"message": "Unauthorized"}), 401
-
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"message": "User not found"}), 404
-
-    data = request.get_json()
-    user.name = data.get('name', user.name)
-    user.username = data.get('username', user.username)
-    user.email = data.get('email', user.email)
-
-    db.session.commit()
-
-    return jsonify({"message": "User updated successfully"}), 200
-
-
-
 
 
 #BOOKINGS
@@ -708,6 +720,8 @@ def book_trek(trek_id):
     
     db.session.add(trek)
     db.session.add(booking)
+    cache.clear()
+
     db.session.commit()
 
     return jsonify({"message": "Trek booked successfully"}), 200
@@ -740,8 +754,8 @@ def get_bookings():
                 'staff_name': staff.name if staff else "Unassigned",
                 'staff_email': staff.email if staff else "N/A",
                 
-                'start_date': trek.start_date,
-                'end_date': trek.end_date,
+                'start_date': trek.start_date.isoformat(),
+                'end_date': trek.end_date.isoformat(),
                 'status': trek.status,
                 'booking_status': booking.status,
             }
@@ -792,9 +806,12 @@ def cancel_booking(booking_id):
         return jsonify({"message": "Booking not found"}), 404
 
     db.session.delete(booking)
+    cache.clear()
+
     if trek:
         trek.available_slots += 1
         db.session.add(trek)
+
     db.session.commit()
 
     return jsonify({"message": "Booking cancelled successfully"}), 200
@@ -1014,8 +1031,8 @@ def user_search_treks():
         'id': t.id,
         'name': t.name,
         'location': t.location,
-        'start_date': t.start_date,
-        'end_date': t.end_date,
+        'start_date': t.start_date.isoformat(),
+        'end_date': t.end_date.isoformat(),
         'status': t.status
     } for t in treks]
 

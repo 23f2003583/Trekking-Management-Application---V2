@@ -55,11 +55,12 @@ export default {
         this.$emit('registered'); 
         localStorage.setItem('user_token', response.data.access_token);
         console.log('User registered successfully:', response.data);
+        this.$router.push('/'); 
+
       } catch (error) {
         alert(error.response.data.message);
         console.error('Error registering user:', error);
       }
-      this.$router.push('/user'); 
     },
         cancel() {
             this.$router.push('/');

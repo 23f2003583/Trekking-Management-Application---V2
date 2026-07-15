@@ -29,28 +29,28 @@
             
             <tbody>
                 <tr v-for="trek in activeTreks" :key="trek.id">
-                    <td>{{ trek.id }}</td>
-                    <td>{{ trek.name }}</td>
-                    <td>{{ trek.location }}</td>
-                    <td>{{ trek.difficulty }}</td>
-                    <td>{{ trek.duration }}</td>
-                    <td>{{ trek.description }}</td>
-                    <td>{{ trek.available_slots }}</td>
-                    <td>{{ trek.staff_id }}</td>
-                    <td>{{ trek.staff_name }}</td>
-                    <td>{{ trek.price }}</td>
-                    <td>{{ trek.start_date }}</td>
-                    <td>{{ trek.end_date }}</td>
-                    <td><button>{{ trek.status }}</button></td>
-                    <td>
-                        <button 
-                            @click="Book_Trek(trek.id)" 
-                            :disabled="!!trek.my_booking_status">
-                            {{ trek.my_booking_status ? 'Booked' : 'Book Trek' }}
-                        </button>
+                        <td>{{ trek.id }}</td>
+                        <td>{{ trek.name }}</td>
+                        <td>{{ trek.location }}</td>
+                        <td>{{ trek.difficulty }}</td>
+                        <td>{{ trek.duration }}</td>
+                        <td>{{ trek.description }}</td>
+                        <td>{{ trek.available_slots }}</td>
+                        <td>{{ trek.staff_id }}</td>
+                        <td>{{ trek.staff_name }}</td>
+                        <td>{{ trek.price }}</td>
+                        <td>{{ trek.start_date }}</td>
+                        <td>{{ trek.end_date }}</td>
+                        <td><button>{{ trek.status }}</button></td>
+                        <td>
+                            <button 
+                                @click="Book_Trek(trek.id)" 
+                                :disabled="!!trek.my_booking_status">
+                                {{ trek.my_booking_status ? 'Booked' : 'Book Trek' }}
+                            </button>
 
-                       
-                    </td>
+                        
+                        </td>
                 </tr>
             </tbody>
         </table>
@@ -115,6 +115,3 @@ export default {
     }
 }
 </script>
-
-<style>
-</style>

@@ -39,7 +39,6 @@
                     <td>{{ booking.end_date }}</td>
                     <td>{{ booking.status }}</td>
                     <td>
-                        <!-- FIX 3: Replaced Cancel with an Update Status button -->
                         <button 
                             @click="Update_Status(booking.booking_id)"
                             >
@@ -75,7 +74,6 @@ export default {
             }
         },
         
-        // FIX 3: Replaced the cancellation logic with status update logic
         async Update_Status(bookingId) {
             try {
                 const token = localStorage.getItem('staff_token'); 
@@ -87,7 +85,6 @@ export default {
                     }
                 });
                 
-                // Refresh the table to see the new status
                 this.fetchbooking();
                 
             } catch (error) {
@@ -102,12 +99,3 @@ export default {
     }
 }
 </script>
-
-<style>
-button:disabled {
-    background-color: #cccccc;
-    color: #666666;
-    cursor: not-allowed;
-    border: 1px solid #999999;
-}
-</style>

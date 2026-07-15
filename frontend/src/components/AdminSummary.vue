@@ -5,16 +5,13 @@
       <p>Total Platform Bookings: {{ summary.total_bookings }}</p>
       <p>Total Platform Revenue: ₹{{ summary.total_revenue }}</p>
       
-      <!-- Added a flex container so the charts sit side-by-side -->
       <div style="display: flex; gap: 40px; flex-wrap: wrap; margin-top: 30px;">
         
-        <!-- Original Bookings Chart -->
         <div v-if="summary.trek_names && summary.trek_names.length > 0" style="flex: 1; min-width: 300px;">
           <h3>Bookings per Trek</h3>
           <Bar :data="countChartData" :options="{ responsive: true }" />
         </div>
 
-        <!-- NEW: Staff Assigned Treks Chart -->
         <div v-if="summary.staff_names && summary.staff_names.length > 0" style="flex: 1; min-width: 300px;">
           <h3>Assigned Treks per Staff</h3>
           <Bar :data="staffChartData" :options="{ responsive: true }" />
@@ -49,7 +46,6 @@ export default {
     }
   },
   computed: {
-    // Existing Chart Data
     countChartData() {
       return {
         labels: this.summary.trek_names || [],
@@ -62,7 +58,6 @@ export default {
         ],
       }
     },
-    // NEW: Staff Chart Data
     staffChartData() {
       return {
         labels: this.summary.staff_names || [],
@@ -70,7 +65,7 @@ export default {
           {
             label: 'Assigned Treks',
             data: this.summary.staff_trek_counts || [],
-            backgroundColor: 'rgba(54, 162, 235, 0.5)', // Blue color to distinguish it
+            backgroundColor: 'rgba(54, 162, 235, 0.5)', 
           },
         ],
       }

@@ -89,7 +89,6 @@ export default {
     this.$emit('registered'); 
     console.log('Trek registered successfully:', response.data);
     
-    // 3. (Optional) Adjust your routing. Usually you just want to hide the form.
     this.$router.push('/admin'); 
   } catch (error) {
     console.error('Error registering trek:', error);

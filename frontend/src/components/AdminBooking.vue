@@ -72,7 +72,6 @@ export default {
                 const token = localStorage.getItem('admin_token');
                 const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
                 
-                // Updated to hit the Admin route
                 const res = await axios.get('http://localhost:5000/api/bookings', config);
                 this.bookings = res.data;
             } catch (error) {
@@ -82,7 +81,6 @@ export default {
         
         async Update_Status(bookingId) {
             try {
-                // Fixed: Now properly pulls the admin_token instead of staff_token
                 const token = localStorage.getItem('admin_token'); 
                 if (!token) return;
 
@@ -92,7 +90,6 @@ export default {
                     }
                 });
                 
-                // Refresh the table to see the new status
                 this.fetchbooking();
                 
             } catch (error) {
@@ -107,12 +104,3 @@ export default {
     }
 }
 </script>
-
-<style>
-button:disabled {
-    background-color: #cccccc;
-    color: #666666;
-    cursor: not-allowed;
-    border: 1px solid #999999;
-}
-</style>

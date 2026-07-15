@@ -57,20 +57,3 @@ export default {
     }
 }
 </script>
-<style>
-  .container {
-    display: flex;
-    gap: 20px; 
-    padding: 2px;
-    
-  }
-
-  .box {
-    flex: 1; 
-    padding: 20px;
-    background-color: #f4f4f4;
-    border: 1px solid #ccc;
-    border-radius: 8px; 
-  }
-
-</style>

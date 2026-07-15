@@ -52,7 +52,6 @@ export default {
       return {
         activeTab: 'home', 
         user_details: {
-          // Add any data properties you need here
         }
       };
     },
@@ -65,6 +64,3 @@ export default {
 }
 </script>
 
-<style>
-
-</style>

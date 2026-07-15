@@ -45,15 +45,12 @@ export default {
         this.$router.push('/user'); 
         
       } catch (error) {
-            // Check if the error came from the backend and has our custom message
             if (error.response && error.response.data && error.response.data.message) {
                 
-                // This will correctly alert: "User account is inactive or blacklisted"
                 alert(error.response.data.message); 
                 console.error("Backend Error:", error.response.data.message);
                 
             } else {
-                // Fallback for network errors (e.g., server is down completely)
                 alert("A network error occurred.");
                 console.error("Axios Error:", error.message);
             }

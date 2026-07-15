@@ -28,9 +28,7 @@
                     <th>location</th>
                     <th>Difficulty</th>
                     <th>Duration</th>
-                    <!-- <th>Description</th> -->
                     <th>Available Slots</th>
-                    <!-- <th>Staff ID</th> -->
                     <th>Staff Name</th>
                     <th>Price</th>
                     <th>Start Date</th>
@@ -46,9 +44,7 @@
                     <td>{{ trek.location }}</td>
                     <td>{{ trek.difficulty }}</td>
                     <td>{{ trek.duration }}</td>
-                    <!-- <td>{{ trek.description }}</td> -->
                     <td>{{ trek.available_slots }}</td>
-                    <!-- <td>{{ trek.staff_id }}</td> -->
                     <td>{{ trek.staff_name }}</td>
                     <td>{{ trek.price }}</td>
                     <td>{{ trek.start_date }}</td>
@@ -139,7 +135,8 @@ export default {
             } catch (error) {
                 console.error('Error deleting trek:', error);
             }
-        }
+        },
+        
     },
     mounted() {
         this.fetchTreks();
@@ -147,7 +144,3 @@ export default {
 }
 
 </script>
-
-<style>
-
-</style>

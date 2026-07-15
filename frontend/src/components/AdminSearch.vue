@@ -16,7 +16,6 @@
 
     <div v-if="hasSearched">
       
-      <!-- Treks Results -->
       <div class="result-card">
         <h3>Treks ({{ results.treks.length }})</h3>
         <ul v-if="results.treks.length > 0">
@@ -27,7 +26,6 @@
         <p v-else class="empty-text">No treks found matching "{{ lastSearched }}".</p>
       </div>
 
-      <!-- Staff Results -->
       <div class="result-card">
         <h3>Staff Members ({{ results.staff.length }})</h3>
         <ul v-if="results.staff.length > 0">
@@ -38,7 +36,6 @@
         <p v-else class="empty-text">No staff found matching "{{ lastSearched }}".</p>
       </div>
 
-      <!-- Users Results -->
       <div class="result-card">
         <h3>Trekkers ({{ results.users.length }})</h3>
         <ul v-if="results.users.length > 0">

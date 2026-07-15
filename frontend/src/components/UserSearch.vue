@@ -55,7 +55,6 @@ export default {
       }
 
       try {
-        // Remember to use user_token for the trekker's side!
         const token = localStorage.getItem('user_token');
         
         const response = await axios.get('http://localhost:5000/api/user/search_treks', {

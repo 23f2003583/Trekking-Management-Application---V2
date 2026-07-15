@@ -86,7 +86,6 @@ export default {
 
   mounted() {
     if (this.trek) {
-      // 1. Copy standard text fields normally
       this.form.id = this.trek.id;
       this.form.name = this.trek.name;
       this.form.location = this.trek.location;
@@ -96,29 +95,20 @@ export default {
       this.form.available_slots = this.trek.available_slots;
       this.form.staff_id = this.trek.staff_id;
       this.form.price = this.trek.price;
-      
-      // 2. Simple Date Flipper for Start Date
       if (this.trek.start_date) {
-          const parts = this.trek.start_date.split('-'); // Splits "15-07-2026" into ["15", "07", "2026"]
-          if (parts.length === 3) {
-              this.form.start_date = `${parts[2]}-${parts[1]}-${parts[0]}`; // Flips to "2026-07-15"
-          }
+        this.form.start_date = this.trek.start_date.split('T')[0];
       }
-
-      // 3. Simple Date Flipper for End Date
+        
       if (this.trek.end_date) {
-          const parts = this.trek.end_date.split('-');
-          if (parts.length === 3) {
-              this.form.end_date = `${parts[2]}-${parts[1]}-${parts[0]}`; 
-          }
+        this.form.end_date = this.trek.end_date.split('T')[0];
       }
+      
     }
   },
   methods: {
     async updateTrek() {
   try {
-    const token = localStorage.getItem('admin_token'); 
-
+const token = localStorage.getItem('admin_token') || localStorage.getItem('staff_token');
     const response = await axios.put(`http://localhost:5000/api/update_trek/${this.form.id}`, this.form, {
       headers: {
         Authorization: `Bearer ${token}`
@@ -126,9 +116,10 @@ export default {
     });
     
     this.$emit('updated'); 
+
     console.log('Trek updated successfully:', response.data);
+    this.$emit('trekUpdated');
     
-    this.$router.push('/admin'); 
   } catch (error) {
     console.error('Error updating trek:', error);
   }

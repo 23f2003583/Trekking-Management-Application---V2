@@ -24,10 +24,7 @@
                     <th>location</th>
                     <th>Difficulty</th>
                     <th>Duration</th>
-                    <!-- <th>Description</th> -->
                     <th>Available Slots</th>
-                    <!-- <th>Staff ID</th> -->
-                    <!-- <th>Staff Name</th> -->
                     <th>Price</th>
                     <th>Start Date</th>
                     <th>End Date</th>
@@ -36,27 +33,26 @@
             </thead>
             
             <tbody>
-                <tr v-for="trek in treks" :key="trek.id">
-                    <td>{{ trek.id }}</td>
-                    <td>{{ trek.name }}</td>
-                    <td>{{ trek.location }}</td>
-                    <td>{{ trek.difficulty }}</td>
-                    <td>{{ trek.duration }}</td>
-                    <td>{{ trek.description }}</td>
-                    <td>{{ trek.available_slots }}</td>
-                    <!-- <td>{{ trek.staff_id }}</td> -->
-                    <!-- <td>{{ trek.staff_name }}</td> -->
-                    <td>{{ trek.price }}</td>
-                    <td>{{ trek.start_date }}</td>
-                    <td>{{ trek.end_date }}</td>
-                    <td><button @click="updateTrekStatus(trek.id)">
-                             {{ trek.status }}
-                        </button></td>
-                    <td>
-                        <button @click="openEditForm(trek)">
-                            Edit
-                        </button>
-                    </td>
+                <tr v-for="trek in activeTreks" :key="trek.id">
+                    
+                        <td>{{ trek.id }}</td>
+                        <td>{{ trek.name }}</td>
+                        <td>{{ trek.location }}</td>
+                        <td>{{ trek.difficulty }}</td>
+                        <td>{{ trek.duration }}</td>
+                        <td>{{ trek.description }}</td>
+                        <td>{{ trek.available_slots }}</td>
+                        <td>{{ trek.price }}</td>
+                        <td>{{ trek.start_date }}</td>
+                        <td>{{ trek.end_date }}</td>
+                        <td><button @click="updateTrekStatus(trek.id)">
+                                {{ trek.status }}
+                            </button></td>
+                        <td>
+                            <button @click="openEditForm(trek)">
+                                Edit
+                            </button>
+                        </td>
                 </tr>
             </tbody>
         </table>
@@ -128,16 +124,19 @@ export default {
             } catch (error) {
                 console.error('Error updating trek status:', error);
             }
-        },
+        
+    }
         
     },
     mounted() {
         this.fetchTreks();
+    },
+    computed: {
+        activeTreks() {
+            return this.treks.filter(trek => !trek.is_deleted);
+        }
     }
 }
 
 </script>
 
-<style>
-
-</style>

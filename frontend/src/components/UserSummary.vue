@@ -72,7 +72,6 @@ export default {
     async triggerExport() {
       try {
         const token = localStorage.getItem('user_token')
-        // Ensure this matches your Flask route for the celery export task!
         const response = await axios.get('http://localhost:5000/api/export/bookings', {
           headers: {
             Authorization: `Bearer ${token}`

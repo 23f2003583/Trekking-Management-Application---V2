@@ -67,9 +67,10 @@ export default {
         async fetchbooking() {
             try {
                 const token = localStorage.getItem('user_token');
-                const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
                 
-                const res = await axios.get('http://localhost:5000/api/get_bookings_of_user', config);
+                const res = await axios.get('http://localhost:5000/api/get_bookings_of_user',  { 
+                    headers: { Authorization: `Bearer ${token}` } 
+                });
                 this.bookings = res.data;
             } catch (error) {
                 console.error('Error fetching bookings:', error);
@@ -108,11 +109,3 @@ export default {
 }
 </script>
 
-<style>
-button:disabled {
-    background-color: #cccccc;
-    color: #666666;
-    cursor: not-allowed;
-    border: 1px solid #999999;
-}
-</style>

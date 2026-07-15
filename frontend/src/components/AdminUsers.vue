@@ -6,6 +6,7 @@
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Name</th>
                     <th>Username</th>
                     <th>Email</th>
                     <th>Status</th>
@@ -16,6 +17,8 @@
             <tbody>
                 <tr v-for="user in users" :key="user.id">
                     <td>{{ user.id }}</td>
+                    <td>{{ user.name }}</td>
+
                     <td>{{ user.username }}</td>
                     <td>{{ user.email }}</td>
                     <td><button @click="updateUserStatus(user.id)">
@@ -91,35 +94,7 @@ export default {
                 console.error("Failed to delete user:", error.response ? error.response.data : error);
             }
         }
-    //     async fetchUsers() {
-    // const token = localStorage.getItem('admin_token');
-    
-    // // 1. Check if the token exists before making the request
-    // if (!token) {
-    //     console.error("No admin token found. User might not be logged in.");
-    //     // Optional: Redirect back to login page
-    //     // this.$router.push('/login'); 
-    //     return; 
-    // }
 
-    // try {
-    //     const res = await axios.get('http://localhost:5000/api/get_users', {
-    //         headers: {
-    //             Authorization: `Bearer ${token}` 
-    //         }
-    //     });
-    //     this.users = res.data;
-    // } catch (error) {
-    //     // 2. Catch the error so it doesn't crash your app silently
-    //     console.error("Failed to fetch users:", error.response ? error.response.data : error);
-        
-    //     // If the token is invalid or expired, log them out
-    //     if (error.response && (error.response.status === 401 || error.response.status === 422)) {
-    //          localStorage.removeItem('admin_token');
-    //          // this.$router.push('/login'); 
-    //     }
-    // }
-// }
     },
     mounted() {
         this.fetchUsers();
